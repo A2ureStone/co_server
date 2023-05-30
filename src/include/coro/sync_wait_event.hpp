@@ -1,3 +1,4 @@
+#pragma once
 #include "coro/sync_wait.hpp"
 
 namespace coro {

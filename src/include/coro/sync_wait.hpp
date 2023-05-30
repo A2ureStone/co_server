@@ -1,3 +1,4 @@
+#pragma once
 #include <coroutine>
 #include "coro/task.hpp"
 #include <exception>
