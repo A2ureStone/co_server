@@ -1,7 +1,7 @@
 #pragma once
 #include <thread>
 #include "coro/task.hpp"
-#include "net/poll_info.hpp"
+#include "coro/net/poll_info.hpp"
 #include <liburing.h>
 #include <vector>
 #include <sys/socket.h>
