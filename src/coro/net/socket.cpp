@@ -8,6 +8,14 @@ namespace coro
 {
     namespace net
     {
+        auto socket::recv(void *buf, size_t nbytes) -> task<int> {
+            co_return co_await context_ptr_->recv(fd_, buf, nbytes);
+        }
+
+        auto socket::send(const void *buf, size_t nbytes) -> task<int> {
+            co_return co_await context_ptr_->send(fd_, buf, nbytes);
+        }
+
         auto socket::read_until(char *buf, int count) -> task<int>
         {
             int nread, totlen = 0;

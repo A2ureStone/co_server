@@ -59,13 +59,19 @@ namespace coro
             /* set type for the socket, client or server */
             // auto set_type(type_t type) -> void { type_ = type; }
 
+            /* same as system call, error code is -(return_val) if happens */
+            auto recv(void *buf, size_t nbytes) -> task<int>;
+
+            /* same as system call, error code is -(return_val) if happens */
+            auto send(const void *buf, size_t nbytes) -> task<int>;
+
             /* read until count bytes or socket close or error. In former 2 cases, return number of read bytes.
                In last case, we return the error code. */
-            auto read_until(char *buf, int count) -> task<int>;
+            auto read_until(char *buf, int count) -> coro::task<int>;
 
             /* write until count bytes or socket close or error. In former 2 cases, return number of write bytes.
                In last case, we return the error code. */
-            auto write_until(const char *buf, int count) -> task<int>;
+            auto write_until(const char *buf, int count) -> coro::task<int>;
 
             // static auto make_socket() -> socket;
 
