@@ -1,25 +1,31 @@
 #pragma once
+// #include "redis/sds.hpp"
+// #include "redis/adlist.hpp"
+// #include "redis/dict.hpp"
 
 namespace redis
 {
+    // a wrapper to store redis type in a dict?
     struct redis_object
     {
     public:
         enum class object_type
         {
+            empty,
             sds,
             list,
             dict
         };
 
-        redis_object(int refcount, object_type type) : refcount_(refcount), type_(type) {}
-        redis_object(const redis_object&) = default;
-        redis_object(redis_object&&) = default;
-        auto operator=(const redis_object&) -> redis_object& = default;
-        auto operator=(redis_object&&) -> redis_object& = default;
-        virtual ~redis_object() = default;
+        redis_object() = delete;
+        redis_object(object_type type) : type_(type) {}
+        redis_object(const redis_object&) = delete;
+        redis_object(redis_object&&) = delete;
+        auto operator=(const redis_object&other) = delete;
+        auto operator=(redis_object&&) = delete;
+        virtual ~redis_object() = 0;
+        virtual redis_object *duplicate() { return nullptr; }
 
-        int refcount_;
-        object_type type_;
+        object_type type_ {object_type::empty};
     };
 } // namespace redis

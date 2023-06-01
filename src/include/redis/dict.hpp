@@ -7,7 +7,7 @@ namespace redis
     template<typename key, typename value>
     class dict : public redis_object {
     public:
-        dict() : redis_object(0, redis_object::object_type::dict) {}
+        dict() : redis_object(redis_object::object_type::dict) {}
         dict(const dict&) = default;
         dict(dict&&) = default;
         auto dict(const dict&) -> dict & = default;
