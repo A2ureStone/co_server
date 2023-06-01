@@ -8,6 +8,50 @@
 using coro::bg_task;
 using coro::net::io_scheduler;
 using namespace redis;
+TEST(AnetTest, TestSocketWrapper) {
+
+    io_scheduler context;
+    auto server = [&context]() -> bg_task<>
+    {
+        auto sock = anet_tcpserver(context, 8103);
+        int client_fd = co_await anet_accept(context, sock, nullptr, nullptr);
+        std::cout << std::format("server: accept: {}\n", client_fd);
+        if (client_fd < 0)
+        {
+            co_return;
+        }
+        char buf[4096];
+        buf[4095] = '\0';
+        int read_num = 0;
+        auto client = coro::net::socket(client_fd, &context);
+        if ((read_num = co_await client.recv(buf, 1024)) > 0)
+        {
+            buf[read_num] = '\0';
+            std::cout << std::format("server: recv {}\n", buf);
+        }
+        co_return;
+    };
+    auto client = [&context]() -> bg_task<>
+    {
+        auto sock = co_await anet_connect(context, "127.0.0.1", 8103);
+        if (!sock.is_init())
+        {
+            co_return;
+        }
+        std::string buf(512, 'a');
+        int send_num = co_await sock.send(buf.c_str(), 512);
+        if (send_num != 512) {
+            std::cerr << std::format("client: send num {} error\n", send_num);
+            co_return;
+        }
+        std::cout << "client: send 512 bytes\n";
+        co_return;
+    };
+    context.spawn(server());
+    context.spawn(client());
+    context.run();
+}
+
 TEST(AnetTest, MakeTcpServer)
 {
     io_scheduler context;
