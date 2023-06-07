@@ -8,11 +8,13 @@ namespace coro
 {
     namespace net
     {
-        auto socket::recv(void *buf, size_t nbytes) -> task<int> {
+        auto socket::recv(void *buf, size_t nbytes) -> task<int>
+        {
             co_return co_await context_ptr_->recv(fd_, buf, nbytes);
         }
 
-        auto socket::send(const void *buf, size_t nbytes) -> task<int> {
+        auto socket::send(const void *buf, size_t nbytes) -> task<int>
+        {
             co_return co_await context_ptr_->send(fd_, buf, nbytes);
         }
 
@@ -51,6 +53,12 @@ namespace coro
                 }
                 else if (nwrite < -1)
                 {
+                    // handle eagain
+                    if (nwrite == -EAGAIN)
+                    {
+                        std::cerr << "socket::write_until write return EAGAIN\n";
+                        continue;
+                    }
                     co_return nwrite;
                 }
             }

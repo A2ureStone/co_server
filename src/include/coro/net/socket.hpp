@@ -26,7 +26,7 @@ namespace coro
             socket() = default;
             explicit socket(int fd, io_scheduler *context_ptr) : fd_(fd), context_ptr_(context_ptr){};
             socket(const socket &) = delete;
-            socket(socket &&other) : fd_(std::exchange(other.fd_, -1)), context_ptr_(other.context_ptr_){}
+            socket(socket &&other) : fd_(std::exchange(other.fd_, -1)), context_ptr_(other.context_ptr_) {}
             auto operator=(const socket &) -> socket & = delete;
             auto operator=(socket &&other) -> socket &
             {
@@ -70,11 +70,10 @@ namespace coro
             auto read_until(char *buf, int count) -> coro::task<int>;
 
             /* write until count bytes or socket close or error. In former 2 cases, return number of write bytes.
-               In last case, we return the error code. */
+               In last case, we return the error code(this function handle EAGAIN and repeat write). */
             auto write_until(const char *buf, int count) -> coro::task<int>;
 
             // static auto make_socket() -> socket;
-
 
         private:
             int fd_{-1};
