@@ -16,20 +16,22 @@ namespace coro
             io_scheduler();
             ~io_scheduler();
 
-
             // sync_wait bg_coroutine to do network
             auto run() -> void;
 
             [[nodiscard]] auto recv(int fd, void *buf, size_t nbytes) -> coro::task<int>;
 
-            [[nodiscard]] auto accept(int fd, sockaddr* addr, socklen_t* addr_len) -> coro::task<int>;
+            [[nodiscard]] auto accept(int fd, sockaddr *addr, socklen_t *addr_len) -> coro::task<int>;
 
-            [[nodiscard]] auto connect(int fd, const sockaddr* addr, socklen_t addr_len) -> coro::task<int>;
+            [[nodiscard]] auto connect(int fd, const sockaddr *addr, socklen_t addr_len) -> coro::task<int>;
 
             [[nodiscard]] auto send(int fd, const void *buf, size_t nbytes) -> coro::task<int>;
 
+            auto notify_on_fd(int fd) -> coro::task<void>;
+
             // start a coroutine in backgroud, choose lazy run or eager run
-            auto spawn(std::coroutine_handle<> coro) -> void {
+            auto spawn(std::coroutine_handle<> coro) -> void
+            {
                 // if (!lazy) {
                 //     coro.resume();
                 // }

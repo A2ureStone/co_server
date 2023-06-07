@@ -1,4 +1,5 @@
 #include "coro/net/io_scheduler.hpp"
+#include <format>
 #include <string.h>
 
 namespace coro
@@ -62,8 +63,9 @@ namespace coro
 
         [[nodiscard]] auto io_scheduler::recv(int fd, void *buf, size_t nbytes) -> coro::task<int>
         {
-            struct io_uring_sqe* sqe = io_uring_get_sqe(&ring_);
-            if (sqe == nullptr) {
+            struct io_uring_sqe *sqe = io_uring_get_sqe(&ring_);
+            if (sqe == nullptr)
+            {
                 std::cerr << "io_uring have no sqe\n";
                 co_return -1;
             }
@@ -79,10 +81,11 @@ namespace coro
             co_return pi.res_;
         }
 
-        [[nodiscard]] auto io_scheduler::accept(int fd, sockaddr* addr, socklen_t* addr_len) -> coro::task<int>
+        [[nodiscard]] auto io_scheduler::accept(int fd, sockaddr *addr, socklen_t *addr_len) -> coro::task<int>
         {
             struct io_uring_sqe *sqe = io_uring_get_sqe(&ring_);
-            if (sqe == nullptr) {
+            if (sqe == nullptr)
+            {
                 std::cerr << "io_uring have no sqe\n";
                 co_return -1;
             }
@@ -95,9 +98,11 @@ namespace coro
             co_return pi.res_;
         }
 
-        [[nodiscard]] auto io_scheduler::connect(int fd, const sockaddr* addr, socklen_t addr_len) -> coro::task<int> {
+        [[nodiscard]] auto io_scheduler::connect(int fd, const sockaddr *addr, socklen_t addr_len) -> coro::task<int>
+        {
             struct io_uring_sqe *sqe = io_uring_get_sqe(&ring_);
-            if (sqe == nullptr) {
+            if (sqe == nullptr)
+            {
                 std::cerr << "io_uring have no sqe\n";
                 co_return -1;
             }
@@ -110,14 +115,16 @@ namespace coro
             co_return pi.res_;
         }
 
-        [[nodiscard]] auto io_scheduler::send(int fd, const void *buf, size_t nbytes) -> coro::task<int> {
-            struct io_uring_sqe* sqe = io_uring_get_sqe(&ring_);
-            if (sqe == nullptr) {
+        [[nodiscard]] auto io_scheduler::send(int fd, const void *buf, size_t nbytes) -> coro::task<int>
+        {
+            struct io_uring_sqe *sqe = io_uring_get_sqe(&ring_);
+            if (sqe == nullptr)
+            {
                 std::cerr << "io_uring have no sqe\n";
                 co_return -1;
             }
             auto pi = poll_info{};
-            pi.iov_.iov_base = const_cast<void*>(buf);
+            pi.iov_.iov_base = const_cast<void *>(buf);
             pi.iov_.iov_len = nbytes;
             io_uring_prep_writev(sqe, fd, &pi.iov_, 1, 0);
             io_uring_sqe_set_data(sqe, &pi);
@@ -126,6 +133,27 @@ namespace coro
             co_await pi;
             // read complete
             co_return pi.res_;
+        }
+
+        auto io_scheduler::notify_on_fd(int fd) -> coro::task<void>
+        {
+            struct io_uring_sqe *sqe = io_uring_get_sqe(&ring_);
+            if (sqe == nullptr)
+            {
+                std::cerr << "io_uring have no sqe\n";
+                co_return;
+            }
+            auto pi = poll_info{};
+            io_uring_prep_cancel_fd(sqe, fd, 0);
+            io_uring_sqe_set_data(sqe, &pi);
+            io_uring_submit(&ring_);
+            waiting_ev_++;
+            co_await pi;
+            if (pi.res_ < 0)
+            {
+                std::cerr << std::format("io_scheduler::notify_on_fd notify fd {} get error, {}\n", fd, strerror(-pi.res_));
+                co_return;
+            }
         }
 
     } // namespace net
