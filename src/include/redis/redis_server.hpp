@@ -23,6 +23,8 @@ namespace redis
 
         auto server_task() -> coro::bg_task<>;
 
+        auto run() -> void;
+
     public:
         int port_{REDIS_SERVERPORT};
         int db_num_{REDIS_DEFAULT_DBNUM};
