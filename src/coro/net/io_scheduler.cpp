@@ -51,7 +51,7 @@ namespace coro
                     waiting_ev_ -= cqe_count;
                     io_uring_cq_advance(&ring_, static_cast<unsigned int>(cqe_count));
                 }
-                else if (-res != ETIME)
+                else if (-res != ETIME && -res != EINTR)
                 {
                     std::cerr << "io_scheduler::run() io_uring_wait_cqe error " << res << std::endl;
                     std::cerr << strerror(-res) << std::endl;
