@@ -4,12 +4,14 @@
 #include <format>
 #include <stdexcept>
 #include <assert.h>
+#include "redis/cmd.hpp"
 
 namespace redis
 {
-    redis_client::redis_client(int fd, coro::net::io_scheduler *context_ptr, redis_server *svr_ptr) : cli_sock_(fd, context_ptr), context_ptr_(context_ptr), svr_ptr_(svr_ptr), running_(true)
+    redis_client::redis_client(int fd, coro::net::io_scheduler *context_ptr, redis_server *svr_ptr) : cli_sock_(fd, context_ptr), context_ptr_(context_ptr), running_(true), svr_ptr_(svr_ptr)
     {
         // TODO a lots of member init
+        select_db(0);
     }
 
     redis_client::~redis_client() {}
@@ -362,21 +364,31 @@ namespace redis
         flags_ |= REDIS_CLOSE_AFTER_REPLY;
     }
 
-    auto redis_client::process_cmd() -> int
+    auto redis_client::process_cmd() -> bool
     {
-        std::string result;
-        for (const auto &arg : argv_)
+        auto cmd = cmd_table.lookup_cmd(argv_[0]);
+        if (!cmd)
         {
-            result += arg + " ";
+            add_reply("-ERR unknown command\r\n");
+            return true;
         }
-        if (!result.empty())
+        else if (cmd->arity_ > 0 && cmd->arity_ != static_cast<int>(argv_.size()))
         {
-            result.pop_back();
+            add_reply("-ERR wrong number of arguments\r\n");
+            return true;
         }
-        result.push_back('d');
-        result.push_back('\n');
-        add_reply(result);
-        return 1;
+        cmd->execute(*this);
+        return true;
+    }
+
+    auto redis_client::select_db(int id) -> bool
+    {
+        if (id < 0 || id > svr_ptr_->db_num_)
+        {
+            return false;
+        }
+        db_ = &svr_ptr_->dbs_[id];
+        return true;
     }
 
 } // namespace redis

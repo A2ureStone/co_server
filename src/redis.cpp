@@ -1,3 +1,4 @@
+#include "redis/redis.hpp"
 #include "redis/redis_server.hpp"
 #include <exception>
 #include <format>

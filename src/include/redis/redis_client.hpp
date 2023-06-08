@@ -6,13 +6,15 @@
 #include "coro/task.hpp"
 #include "redis/redis.hpp"
 #include "redis/redis_server.hpp"
-#include "redis/cmd.hpp"
 #include <list>
 #include <memory>
 #include <chrono>
 
 namespace redis
 {
+    // forward declare
+    struct cmd;
+
     enum class req_type
     {
         empty,
@@ -61,20 +63,19 @@ namespace redis
         auto set_protocol_error() -> void;
 
         /* do command */
-        auto process_cmd() -> int;
+        auto process_cmd() -> bool;
+
+        auto select_db(int id) -> bool;
 
     private:
         coro::net::socket cli_sock_{};
         coro::net::io_scheduler *context_ptr_{nullptr};
-        redis_server *svr_ptr_{nullptr};
         bool running_{false};
-        redis::redis_db *db_{nullptr};
         int dict_id_{-1};
         std::string query_buf_{};
         size_t query_buf_peek_{0};
         req_type reqtype_{req_type::empty};
         // redis_object **argv_{nullptr};
-        std::vector<std::string> argv_{};
         int multi_bulklen_{0};
         int bulklen_{-1};
         // std::list<std::shared_ptr<redis_object>> reply_{};
@@ -90,5 +91,9 @@ namespace redis
         int repldbfd_;                                            /* replication DB file descriptor */
         long repldboff_;                                          /* replication DB file offset */
         off_t repldbsize_;                                        /* replication DB file size */
+    public:
+        redis_server *svr_ptr_{nullptr};
+        redis::redis_db *db_{nullptr};
+        std::vector<std::string> argv_{};
     };
 } // namespace redis

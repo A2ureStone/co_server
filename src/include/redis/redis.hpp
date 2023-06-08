@@ -1,11 +1,55 @@
 #pragma once
+#include <string>
 
-/* error code */
-enum class op_status
+namespace redis
 {
-    redis_ok,
-    redis_err
-};
+    /* error code */
+    enum class op_status
+    {
+        redis_ok,
+        redis_err
+    };
+
+    struct sharedObjectsStruct
+    {
+        std::string crlf = "\r\n";
+        std::string ok = "+OK\r\n";
+        std::string err = "-ERR\r\n";
+        std::string emptybulk = "$0\r\n\r\n";
+        std::string czero = ":0\r\n";
+        std::string cone = ":1\r\n";
+        std::string nullbulk = "$-1\r\n";
+        std::string nullmultibulk = "*-1\r\n";
+        std::string emptymultibulk = "*0\r\n";
+        /* no such key */
+        std::string pong = "+PONG\r\n";
+        std::string wrongtypeerr =
+            "-ERR Operation against a key holding the wrong kind of value\r\n";
+        std::string nokeyerr =
+            "-ERR no such key\r\n";
+        std::string syntaxerr =
+            "-ERR syntax error\r\n";
+        std::string sameobjecterr =
+            "-ERR source and destination objects are the same\r\n";
+        std::string outofrangeerr =
+            "-ERR index out of range\r\n";
+        std::string space = " ";
+        std::string colon = ":";
+        std::string plus = "+";
+        std::string select0 = "select 0\r\n";
+        std::string select1 = "select 1\r\n";
+        std::string select2 = "select 2\r\n";
+        std::string select3 = "select 3\r\n";
+        std::string select4 = "select 4\r\n";
+        std::string select5 = "select 5\r\n";
+        std::string select6 = "select 6\r\n";
+        std::string select7 = "select 7\r\n";
+        std::string select8 = "select 8\r\n";
+        std::string select9 = "select 9\r\n";
+    };
+
+    extern sharedObjectsStruct shared_obj;
+}
 
 /* Static server configuration */
 #define REDIS_DEFAULT_HZ 10 /* Time interrupt calls/sec. */
@@ -64,3 +108,12 @@ enum class op_status
 #define REDIS_CLOSE_ASAP (1 << 10)       /* Close this client ASAP */
 #define REDIS_UNIX_SOCKET (1 << 11)      /* Client connected via Unix domain socket */
 #define REDIS_DIRTY_EXEC (1 << 12)       /* EXEC will fail for errors while queueing */
+
+/* Command flags */
+#define REDIS_CMD_BULK 1   /* Bulk write command */
+#define REDIS_CMD_INLINE 2 /* Inline command */
+/* REDIS_CMD_DENYOOM reserves a longer comment: all the commands marked with
+   this flags will return an error when the 'maxmemory' option is set in the
+   config file and the server is using more than maxmemory bytes of memory.
+   In short this commands are denied on low memory conditions. */
+#define REDIS_CMD_DENYOOM 4

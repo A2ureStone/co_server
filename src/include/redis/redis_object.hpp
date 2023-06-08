@@ -19,13 +19,13 @@ namespace redis
 
         redis_object() = delete;
         redis_object(object_type type) : type_(type) {}
-        redis_object(const redis_object&) = delete;
-        redis_object(redis_object&&) = delete;
-        auto operator=(const redis_object&other) = delete;
-        auto operator=(redis_object&&) = delete;
-        virtual ~redis_object() = 0;
-        virtual redis_object *duplicate() { return nullptr; }
+        redis_object(const redis_object &) = delete;
+        redis_object(redis_object &&) = delete;
+        auto operator=(const redis_object &other) = delete;
+        auto operator=(redis_object &&) = delete;
+        virtual ~redis_object() = default;
+        // virtual redis_object *duplicate() { return nullptr; }
 
-        object_type type_ {object_type::empty};
+        object_type type_{object_type::empty};
     };
 } // namespace redis

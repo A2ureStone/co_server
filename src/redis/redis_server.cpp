@@ -5,6 +5,8 @@
 
 namespace redis
 {
+    sharedObjectsStruct shared_obj;
+
     redis_server::redis_server()
     {
         // TODO config file support
