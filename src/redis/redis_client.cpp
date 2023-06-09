@@ -372,7 +372,7 @@ namespace redis
             add_reply("-ERR unknown command\r\n");
             return true;
         }
-        else if (cmd->arity_ > 0 && cmd->arity_ != static_cast<int>(argv_.size()))
+        else if ((cmd->arity_ > 0 && cmd->arity_ != static_cast<int>(argv_.size())) || static_cast<int>(argv_.size()) < -cmd->arity_)
         {
             add_reply("-ERR wrong number of arguments\r\n");
             return true;
