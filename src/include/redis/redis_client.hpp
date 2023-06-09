@@ -75,10 +75,8 @@ namespace redis
         std::string query_buf_{};
         size_t query_buf_peek_{0};
         req_type reqtype_{req_type::empty};
-        // redis_object **argv_{nullptr};
         int multi_bulklen_{0};
         int bulklen_{-1};
-        // std::list<std::shared_ptr<redis_object>> reply_{};
         std::list<std::string> reply_{};
         size_t totwritten_{0};
         cmd *cmd_{nullptr};
