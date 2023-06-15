@@ -58,6 +58,13 @@ namespace coro
                     // std::cerr << "waiting " << waiting_ev_ << std::endl;
                     exit(1);
                 }
+
+                // TODO add timeout items
+                auto timeout_items = time_wheel_.get_timeout_items();
+                for (const auto &item : timeout_items)
+                {
+                    handles_to_resume_.emplace_back(item.coro_);
+                }
             }
         }
 
@@ -156,6 +163,43 @@ namespace coro
             }
         }
 
+        auto io_scheduler::wait_for(duration timeout) -> coro::task<bool>
+        {
+            // struct timeout_awaiter
+            // {
+            //     timeout_awaiter(time_wheel &wheel, time timeout_point) : wheel_(wheel), timeout_point_(timeout_point) {}
+            //     auto await_ready() -> bool { return false; }
+            //     auto await_suspend(std::coroutine_handle<> coro) -> bool
+            //     {
+            //         success_ = wheel_.add_timeout_item(timeout_point_, coro);
+            //         return success_;
+            //     }
+            //     auto await_resume() -> bool { return success_; }
+            //     time_wheel &wheel_;
+            //     time timeout_point_;
+            //     bool success_{false};
+            // };
+            struct timeout_awaiter
+            {
+                timeout_awaiter(time_wheel &wheel, time timeout_point) : wheel_(wheel), timeout_point_(timeout_point) {}
+                auto await_ready() -> bool { return false; }
+                auto await_suspend(std::coroutine_handle<> coro) -> void
+                {
+                    wheel_.add_timeout_item(timeout_point_, coro);
+                }
+                auto await_resume() -> void {}
+                time_wheel &wheel_;
+                time timeout_point_;
+            };
+            if (timeout.count() > time_wheel::max_timeout_)
+            {
+                co_return false;
+            }
+            waiting_ev_++;
+            co_await timeout_awaiter(time_wheel_, timeout + std::chrono::system_clock::now());
+            waiting_ev_--;
+            co_return true;
+        }
     } // namespace net
 
 } // namespace coro
